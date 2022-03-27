@@ -4,6 +4,13 @@ const downloadingLinesRegEx = /^(\[INFO\] )?Download(ing|ed) from \w*:/
 const downloadingProgressLineRegEx = /^Progress \(\d+\): /
 const whitespaceLineRegEx = /^\s*$/
 
+// Top Level Regions:
+// [INFO] Reactor Build Order:
+// [INFO] ---------------------< com.example:example-parent >---------------------
+// [INFO] Reactor Summary for Example Parent 0.0.1-SNAPSHOT:
+// [INFO] BUILD SUCCESS
+const topLevelStartRegEx = /\[INFO\] (Reactor Build Order:|-{2,}< [\w\.:-]+ >-{2,}|Reactor Summary for.*|BUILD (SUCCESS|FAILURE))$/
+
 class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
     onDidChangeFoldingRanges?: vscode.Event<void> | undefined;
     
@@ -12,9 +19,17 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
 
         let downloadingLinesStartIdx: (number | undefined) = undefined
         let downloadingProgressLinesStartIdx: (number | undefined) = undefined
+        let topLevelStartIdx: (number | undefined) = undefined
 
         for (let lineIdx = 0; lineIdx < document.lineCount; lineIdx++) {
             const lineText = document.lineAt(lineIdx).text;
+
+            if (topLevelStartRegEx.test(lineText)) {
+                if (topLevelStartIdx !== undefined) {
+                    foldingRanges.push(new vscode.FoldingRange(topLevelStartIdx,lineIdx-1));
+                }
+                topLevelStartIdx = lineIdx;
+            }
 
             if (downloadingLinesStartIdx === undefined && downloadingLinesRegEx.test(lineText)) {
                 downloadingLinesStartIdx = lineIdx
@@ -30,6 +45,10 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
                 downloadingProgressLinesStartIdx = undefined;
             }
 
+        }
+
+        if (topLevelStartIdx !== undefined) {
+            foldingRanges.push(new vscode.FoldingRange(topLevelStartIdx,document.lineCount-1));
         }
 
         return foldingRanges;
