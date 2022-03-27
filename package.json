@@ -1,11 +1,11 @@
 {
     "publisher": "baincd",
-    "name": "maven-log-lang",
-    "displayName": "Maven Log File Enhancer",
-    "description": "Add folding ranges and colors to Maven log files",
+    "name": "maven-log-folding-and-colors",
+    "displayName": "Maven Log Folding",
+    "description": "Add folding ranges to Maven log files",
     "version": "0.0.1",
     "repository": {
-        "url": "https://github.com/baincd/vscode-maven-log-lang"
+        "url": "https://github.com/baincd/vscode-maven-log-folding-and-colors"
     },
     "license": "MIT",
     "engines": {
@@ -22,9 +22,9 @@
         "configuration": [
             {
                 "properties": {
-                    "maven-log-lang.filePatterns": {
+                    "maven-log-folding-and-colors.filePatterns": {
                         "type": "array",
-                        "description": "Glob patterns that match the absolute path of documents to apply this extension to.  NOTE: Requires restart for changes to take effect",
+                        "description": "Glob patterns that match the absolute path of documents to apply this Maven Log Folding to.  NOTE: Requires restart for changes to take effect",
                         "items": {
                             "type": "string"
                         },
