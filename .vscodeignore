@@ -11,3 +11,4 @@ src/**
 **/*.ts
 package-vsix.sh
 *.gitignored.*
+log-samples/**
