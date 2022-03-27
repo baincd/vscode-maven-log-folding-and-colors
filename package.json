@@ -22,9 +22,9 @@
         "configuration": [
             {
                 "properties": {
-                    "maven-log-lang.filenamePatterns": {
+                    "maven-log-lang.filePatterns": {
                         "type": "array",
-                        "description": "File name glob patterns to apply folding regions and extension to.  NOTE: Requires restart for changes to take effect",
+                        "description": "Glob patterns that match the absolute path of documents to apply this extension to.  NOTE: Requires restart for changes to take effect",
                         "items": {
                             "type": "string"
                         },

@@ -110,9 +110,9 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-    const filenamePatterns = vscode.workspace.getConfiguration("maven-log-lang").get("filenamePatterns") as string[]
+    const filePatterns = vscode.workspace.getConfiguration("maven-log-lang").get("filePatterns") as string[]
 
-    filenamePatterns.forEach(p => 
+    filePatterns.forEach(p => 
         context.subscriptions.push(
             vscode.languages.registerFoldingRangeProvider(
                 {pattern: p}, new MavenLogFoldingRangeProvider()))
