@@ -35,7 +35,7 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
         let secondLevelStartIdx: (number | undefined) = undefined
         let thirdLevelStartIdx: (number | undefined) = undefined
 
-        for (let lineIdx = 0; lineIdx < document.lineCount; lineIdx++) {
+        for (let lineIdx = 0; lineIdx < document.lineCount && !token.isCancellationRequested; lineIdx++) {
             const lineText = document.lineAt(lineIdx).text.replace(ansiEscapeCodeRegEx, '');
 
             if (topLevelStartRegEx.test(lineText)) {
