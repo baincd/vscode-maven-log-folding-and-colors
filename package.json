@@ -4,6 +4,7 @@
     "displayName": "Maven Log Folding",
     "description": "Add folding ranges to Maven log files",
     "version": "0.0.1",
+    "preview": true,
     "repository": {
         "url": "https://github.com/baincd/vscode-maven-log-folding-and-colors"
     },
