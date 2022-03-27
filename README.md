@@ -6,7 +6,11 @@ Add folding ranges to Maven log files.
 
 Adds folding regions to maven log files.
 
-![](./maven-log-folding-example.png)
+*A maven log file without folding compared to the same log file with all regions folded:*
+![](./images/example1.png)
+
+*Folding and unfolding Maven log file examples:*
+![](./images/example2.png)
 
 ## Features
 
