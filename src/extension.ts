@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 
+const ansiEscapeCodeRegEx = /\x1b\[[0-9;]*m/g
+
 const downloadingLinesRegEx = /^(\[INFO\] )?Download(ing|ed) from \w*:/
 const downloadingProgressLineRegEx = /^Progress \(\d+\): /
 const whitespaceLineRegEx = /^\s*$/
@@ -34,7 +36,7 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
         let thirdLevelStartIdx: (number | undefined) = undefined
 
         for (let lineIdx = 0; lineIdx < document.lineCount; lineIdx++) {
-            const lineText = document.lineAt(lineIdx).text;
+            const lineText = document.lineAt(lineIdx).text.replace(ansiEscapeCodeRegEx, '');
 
             if (topLevelStartRegEx.test(lineText)) {
                 if (topLevelStartIdx !== undefined) {
