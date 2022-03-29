@@ -11,17 +11,17 @@ const whitespaceLineRegEx = /^\s*$/
 // [INFO] ---------------------< com.example:example-parent >---------------------
 // [INFO] Reactor Summary for Example Parent 0.0.1-SNAPSHOT:
 // [INFO] BUILD SUCCESS
-const topLevelStartRegEx = /\[INFO\] (Reactor Build Order:|-{2,}< [\w\.:-]+ >-{2,}|Reactor Summary for.*|BUILD (SUCCESS|FAILURE))$/
+const topLevelStartRegEx = /^\[INFO\] (Reactor Build Order:|-{2,}< [\w\.:-]+ >-{2,}|Reactor Summary for.*|BUILD (SUCCESS|FAILURE))$/
 
 // Second Level Regions:
 // [INFO] --- maven-clean-plugin:3.1.0:clean (default-clean) @ example-lib ---
-const secondLevelStartRegEx = /\[INFO\] --- \S+ \(\S*\) @ \S+ ---/
+const secondLevelStartRegEx = /^\[INFO\] --- \S+ \(\S*\) @ \S+ ---$/
 
 // Third level Regions:
 // [INFO] Running com.example.exampleapp.ExampleAppApplicationTests
-const thirdLevelStartRegEx = /\[INFO\] Running [\w\.]*$/
+const thirdLevelStartRegEx = /^\[INFO\] Running [\w\.]*$/
 // [INFO] Results:
-const thirdLevelEndRegEx =  /\[INFO\] Results:$/
+const thirdLevelEndRegEx =  /^\[INFO\] Results:$/
 
 class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
     onDidChangeFoldingRanges?: vscode.Event<void> | undefined;
