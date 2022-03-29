@@ -29,6 +29,8 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
     onDidChangeFoldingRanges?: vscode.Event<void> | undefined;
     
     provideFoldingRanges(document: vscode.TextDocument, context: vscode.FoldingContext, token: vscode.CancellationToken): vscode.ProviderResult<vscode.FoldingRange[]> {
+        const linePrefixRegEx = getLinePrefixRegEx();
+
         let foldingRanges: vscode.ProviderResult<vscode.FoldingRange[]> = [];
 
         let downloadingLinesStartIdx: (number | undefined) = undefined
@@ -38,7 +40,7 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
         let thirdLevelStartIdx: (number | undefined) = undefined
 
         for (let lineIdx = 0; lineIdx < document.lineCount && !token.isCancellationRequested; lineIdx++) {
-            const lineText = document.lineAt(lineIdx).text.replace(ansiEscapeCodeRegEx, '');
+            const lineText = document.lineAt(lineIdx).text.replace(linePrefixRegEx, '').replace(ansiEscapeCodeRegEx, '');
 
             if (topLevelStartRegEx.test(lineText)) {
                 if (topLevelStartIdx !== undefined) {
@@ -109,6 +111,11 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
         return foldingRanges;
     }
 
+}
+
+function getLinePrefixRegEx(): RegExp {
+    const linePrefixPattern = "^" + vscode.workspace.getConfiguration("maven-log-folding-and-colors").get("linePrefixPattern") as string;
+    return new RegExp(linePrefixPattern);
 }
 
 export function activate(context: vscode.ExtensionContext) {
