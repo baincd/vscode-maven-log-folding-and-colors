@@ -1,7 +1,5 @@
 import * as vscode from 'vscode';
 
-const ansiEscapeCodeRegEx = /\x1b\[[0-9;]*m/g
-
 // [\w.-] => Maven identifier (repo id, group id, or artifact id)
 
 const downloadingLinesRegEx = /^(\[INFO\] )?Download(?:ing|ed) from [\w.-]*:/
@@ -40,7 +38,7 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
         let thirdLevelStartIdx: (number | undefined) = undefined
 
         for (let lineIdx = 0; lineIdx < document.lineCount && !token.isCancellationRequested; lineIdx++) {
-            const lineText = document.lineAt(lineIdx).text.replace(linePrefixRegEx, '').replace(ansiEscapeCodeRegEx, '');
+            const lineText = document.lineAt(lineIdx).text.replace(linePrefixRegEx, '');
 
             if (topLevelStartRegEx.test(lineText)) {
                 if (topLevelStartIdx !== undefined) {
