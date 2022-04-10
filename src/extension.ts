@@ -1,27 +1,6 @@
 import * as vscode from 'vscode';
 
-// [\w.-] => Maven identifier (repo id, group id, or artifact id)
-
-const downloadingLinesRegEx = /^(\[INFO\] )?Download(?:ing|ed) from [\w.-]*:/
-const downloadingProgressLineRegEx = /^Progress \(\d+\): /
-const whitespaceLineRegEx = /^\s*$/
-
-// Top Level Regions:
-// [INFO] Reactor Build Order:
-// [INFO] ---------------------< com.example:example-parent >---------------------
-// [INFO] Reactor Summary for Example Parent 0.0.1-SNAPSHOT:
-// [INFO] BUILD SUCCESS
-const topLevelStartRegEx = /^\[INFO\] (?:Reactor Build Order:|-{2,}< [\w.-]+:[\w.-]+ >-{2,}|Reactor Summary for.*|BUILD (?:SUCCESS|FAILURE))$/
-
-// Second Level Regions:
-// [INFO] --- maven-clean-plugin:3.1.0:clean (default-clean) @ example-lib ---
-const secondLevelStartRegEx = /^\[INFO\] --- [:\w.-]+ \([\w.-]*\) @ [\w.-]+ ---$/
-
-// Third level Regions:
-// [INFO] Running com.example.exampleapp.ExampleAppApplicationTests
-const thirdLevelStartRegEx = /^\[INFO\] Running [\w\.]*$/
-// [INFO] Results:
-const thirdLevelEndRegEx =  /^\[INFO\] Results:$/
+import * as matchers from './matchers'
 
 class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
     onDidChangeFoldingRanges?: vscode.Event<void> | undefined;
@@ -40,7 +19,7 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
         for (let lineIdx = 0; lineIdx < document.lineCount && !token.isCancellationRequested; lineIdx++) {
             const lineText = document.lineAt(lineIdx).text.replace(linePrefixRegEx, '');
 
-            if (topLevelStartRegEx.test(lineText)) {
+            if (matchers.topLevelStartRegEx.test(lineText)) {
                 if (topLevelStartIdx !== undefined) {
                     foldingRanges.push(new vscode.FoldingRange(topLevelStartIdx,lineIdx-1));
                 }
@@ -53,7 +32,7 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
                 topLevelStartIdx = lineIdx;
                 secondLevelStartIdx = undefined;
                 thirdLevelStartIdx = undefined;
-            } else if (secondLevelStartRegEx.test(lineText)) {
+            } else if (matchers.secondLevelStartRegEx.test(lineText)) {
                 if (secondLevelStartIdx !== undefined) {
                     foldingRanges.push(new vscode.FoldingRange(secondLevelStartIdx,lineIdx-1));
                 }
@@ -62,28 +41,28 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
                 }
                 secondLevelStartIdx = lineIdx;
                 thirdLevelStartIdx = undefined;
-            } else if (thirdLevelStartRegEx.test(lineText)) {
+            } else if (matchers.thirdLevelStartRegEx.test(lineText)) {
                 if (thirdLevelStartIdx !== undefined) {
                     foldingRanges.push(new vscode.FoldingRange(thirdLevelStartIdx,lineIdx-1));
                 }
                 thirdLevelStartIdx = lineIdx;
-            } else if (thirdLevelEndRegEx.test(lineText)) {
+            } else if (matchers.thirdLevelEndRegEx.test(lineText)) {
                 if (thirdLevelStartIdx !== undefined) {
                     foldingRanges.push(new vscode.FoldingRange(thirdLevelStartIdx,lineIdx-1));
                 }
                 thirdLevelStartIdx = undefined;
             }
 
-            if (downloadingLinesStartIdx === undefined && downloadingLinesRegEx.test(lineText)) {
+            if (downloadingLinesStartIdx === undefined && matchers.downloadingLinesRegEx.test(lineText)) {
                 downloadingLinesStartIdx = lineIdx
-            } else if (downloadingLinesStartIdx !== undefined && !downloadingLinesRegEx.test(lineText) && !downloadingProgressLineRegEx.test(lineText) && !whitespaceLineRegEx.test(lineText)) {
+            } else if (downloadingLinesStartIdx !== undefined && !matchers.downloadingLinesRegEx.test(lineText) && !matchers.downloadingProgressLineRegEx.test(lineText) && !matchers.whitespaceLineRegEx.test(lineText)) {
                 foldingRanges.push(new vscode.FoldingRange(downloadingLinesStartIdx,lineIdx));
                 downloadingLinesStartIdx = undefined;
             }
 
-            if (downloadingProgressLinesStartIdx === undefined && downloadingProgressLineRegEx.test(lineText)) {
+            if (downloadingProgressLinesStartIdx === undefined && matchers.downloadingProgressLineRegEx.test(lineText)) {
                 downloadingProgressLinesStartIdx = lineIdx
-            } else if (downloadingProgressLinesStartIdx !== undefined && !downloadingProgressLineRegEx.test(lineText) && !whitespaceLineRegEx.test(lineText)) {
+            } else if (downloadingProgressLinesStartIdx !== undefined && !matchers.downloadingProgressLineRegEx.test(lineText) && !matchers.whitespaceLineRegEx.test(lineText)) {
                 foldingRanges.push(new vscode.FoldingRange(downloadingProgressLinesStartIdx,lineIdx-1));
                 downloadingProgressLinesStartIdx = undefined;
             }
