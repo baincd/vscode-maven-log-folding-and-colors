@@ -2,9 +2,9 @@ import * as vscode from 'vscode';
 
 const ansiEscapeCodeRegEx = /\x1b\[[0-9;]*m/g
 
-// [\w\-\.] => Maven identifier (repo id, group id, artifact id)
+// [\w.-] => Maven identifier (repo id, group id, or artifact id)
 
-const downloadingLinesRegEx = /^(\[INFO\] )?Download(ing|ed) from [\w\-\.]*:/
+const downloadingLinesRegEx = /^(\[INFO\] )?Download(ing|ed) from [\w.-]*:/
 const downloadingProgressLineRegEx = /^Progress \(\d+\): /
 const whitespaceLineRegEx = /^\s*$/
 
@@ -13,11 +13,11 @@ const whitespaceLineRegEx = /^\s*$/
 // [INFO] ---------------------< com.example:example-parent >---------------------
 // [INFO] Reactor Summary for Example Parent 0.0.1-SNAPSHOT:
 // [INFO] BUILD SUCCESS
-const topLevelStartRegEx = /^\[INFO\] (Reactor Build Order:|-{2,}< [\w\-\.]+:[\w\-\.]+ >-{2,}|Reactor Summary for.*|BUILD (SUCCESS|FAILURE))$/
+const topLevelStartRegEx = /^\[INFO\] (Reactor Build Order:|-{2,}< [\w.-]+:[\w.-]+ >-{2,}|Reactor Summary for.*|BUILD (SUCCESS|FAILURE))$/
 
 // Second Level Regions:
 // [INFO] --- maven-clean-plugin:3.1.0:clean (default-clean) @ example-lib ---
-const secondLevelStartRegEx = /^\[INFO\] --- [\w\-\.:]+ \([\w\-\.]*\) @ [\w\-\.]+ ---$/
+const secondLevelStartRegEx = /^\[INFO\] --- [:\w.-]+ \([\w.-]*\) @ [\w.-]+ ---$/
 
 // Third level Regions:
 // [INFO] Running com.example.exampleapp.ExampleAppApplicationTests
