@@ -48,6 +48,14 @@ function init() {
 
 export function activate(context: vscode.ExtensionContext) {
     init()
+
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration(e => {
+            if (e.affectsConfiguration("maven-log-folding-and-colors.linePrefixPattern")) {
+                init()
+            }
+        })
+    )
 }
 
 
