@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.3] - 2021-04-10
 ### Removed
-- Remove support for logs with ANSI escape/color codes
+- Remove support for logs with ANSI escape/color codes ([#1](https://github.com/baincd/vscode-maven-log-folding-and-colors/issues/1))
 ### Changed
 - Minor improvements to RegExs that match Maven log lines
 - Refactored internals to improve maintainability and to support future planned features
