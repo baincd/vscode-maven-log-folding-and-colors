@@ -24,6 +24,7 @@ Adds folding regions to maven log files.
 `maven-log-folding-and-colors.filePatterns` - Array of Glob patterns that match the absolute path of documents to apply Maven Log Folding to.  Default: `[ "**/mvn*.log", "**/maven*.log" ]`
 
 `maven-log-folding-and-colors.linePrefixPattern` - RegEx pattern for non-Maven output that might at the beginning of each line.  This can be used for build system logs that prefix each line of Maven output with information like a date.  Default: `""`
+- NOTE: all groups (parenthesis) in regex should be non-capturing groups (ex: `(?:a|b)` )
 
 ## Known Issues
 

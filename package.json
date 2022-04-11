@@ -36,7 +36,7 @@
                     },
                     "maven-log-folding-and-colors.linePrefixPattern": {
                         "type": "string",
-                        "description": "RegEx pattern for non-Maven output that might at the beginning of each line.  This can be used for build system logs that prefix each line of Maven output with information like a date.",
+                        "description": "RegEx pattern for non-Maven output that might at the beginning of each line.  This can be used for build system logs that prefix each line of Maven output with information like a date.  NOTE: all groups (parenthesis) in regex should be non-capturing groups (ex: '(?:a|b)' )",
                         "default": "",
                         "examples": [
                             "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{7}Z "
