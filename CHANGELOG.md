@@ -4,21 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.3] - 2021-04-10
+## [0.0.3] - 2022-04-10
 ### Removed
 - Remove support for logs with ANSI escape/color codes ([#1](https://github.com/baincd/vscode-maven-log-folding-and-colors/issues/1))
 ### Changed
 - Minor improvements to RegExs that match Maven log lines
 - Refactored internals to improve maintainability and to support future planned features
 
-## [0.0.2] - 2021-03-28
+## [0.0.2] - 2022-03-28
 ### Added
 - RegEx pattern setting for non-Maven output that might at the beginning of each line, to support build system logs that prefix each line of Maven output with information like a date.
 ### Fixed
 - Support additional characters in group ids, artifact ids, and repo ids
 - Improve RegExs that match Maven log lines
 
-## [0.0.1] - 2021-03-27
+## [0.0.1] - 2022-03-27
 ### Added
 - Top level of folding (each Maven project as well as the Maven reactor build order, summary, and status)
 - Second level of folding (each plugin that runs)
