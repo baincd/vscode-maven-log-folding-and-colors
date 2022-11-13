@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-export let downloadingLinesRegEx: RegExp
+export let downloadingLineRegEx: RegExp
 export let downloadingProgressLineRegEx: RegExp
 export let whitespaceLineRegEx: RegExp
 
@@ -12,8 +12,8 @@ export let thirdLevelEndRegEx: RegExp
 
 // [\w.-] => Maven identifier (repo id, group id, or artifact id)
 
-const downloadingLinesPattern = "(?:\\[INFO\\] )?Download(?:ing|ed) from [\\w.-]*:"
-const downloadingProgressLinePattern = "Progress \\(\\d+\\): "
+const downloadingLinePattern = "(?:\\[INFO\\] )?Downloading from [\\w.-]*:"
+const downloadingProgressLinePattern = "(?:\\[INFO\\] )?(?:Progress \\(\\d+\\): |Downloaded from [\\w.-]*:)"
 const whitespaceLinePattern = "\\s*$"
 
 // Top Level Regions:
@@ -37,7 +37,7 @@ function init() {
     const linePrefixPatternConfig = vscode.workspace.getConfiguration("maven-log-folding-and-colors").get("linePrefixPattern") as string;
     const linePrefixPattern = (linePrefixPatternConfig ? `^(?:${linePrefixPatternConfig})?` : "^")
 
-    downloadingLinesRegEx = new RegExp(linePrefixPattern + downloadingLinesPattern)
+    downloadingLineRegEx = new RegExp(linePrefixPattern + downloadingLinePattern)
     downloadingProgressLineRegEx = new RegExp(linePrefixPattern + downloadingProgressLinePattern)
     whitespaceLineRegEx = new RegExp(linePrefixPattern + whitespaceLinePattern)
     topLevelStartRegEx = new RegExp(linePrefixPattern + topLevelStartPattern)

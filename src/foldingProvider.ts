@@ -8,7 +8,7 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
     provideFoldingRanges(document: vscode.TextDocument, context: vscode.FoldingContext, token: vscode.CancellationToken): vscode.ProviderResult<vscode.FoldingRange[]> {
         let foldingRanges: vscode.ProviderResult<vscode.FoldingRange[]> = [];
 
-        let downloadingLinesStartIdx: (number | undefined) = undefined
+        let downloadingSectionStartIdx: (number | undefined) = undefined
         let downloadingProgressLinesStartIdx: (number | undefined) = undefined
         let topLevelStartIdx: (number | undefined) = undefined
         let secondLevelStartIdx: (number | undefined) = undefined
@@ -51,18 +51,19 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
                 thirdLevelStartIdx = undefined;
             }
 
-            if (downloadingLinesStartIdx === undefined && matchers.downloadingLinesRegEx.test(lineText)) {
-                downloadingLinesStartIdx = lineIdx
-            } else if (downloadingLinesStartIdx !== undefined && !matchers.downloadingLinesRegEx.test(lineText) && !matchers.downloadingProgressLineRegEx.test(lineText) && !matchers.whitespaceLineRegEx.test(lineText)) {
-                foldingRanges.push(new vscode.FoldingRange(downloadingLinesStartIdx,lineIdx));
-                downloadingLinesStartIdx = undefined;
+            if (downloadingSectionStartIdx === undefined && matchers.downloadingLineRegEx.test(lineText)) {
+                downloadingSectionStartIdx = lineIdx
+            } else if (downloadingSectionStartIdx !== undefined && !matchers.downloadingLineRegEx.test(lineText) && !matchers.downloadingProgressLineRegEx.test(lineText) && !matchers.whitespaceLineRegEx.test(lineText)) {
+                foldingRanges.push(new vscode.FoldingRange(downloadingSectionStartIdx,lineIdx));
+                downloadingSectionStartIdx = undefined;
             }
 
-            if (downloadingProgressLinesStartIdx === undefined && matchers.downloadingProgressLineRegEx.test(lineText)) {
-                downloadingProgressLinesStartIdx = lineIdx
+            if (downloadingProgressLinesStartIdx === undefined && matchers.downloadingLineRegEx.test(lineText)) {
+                // The first downloadingProgress section within an outer downloading section must start on the second line so it does not interfere with the outer downloading section
+                downloadingProgressLinesStartIdx = Math.max(lineIdx, (downloadingSectionStartIdx || -1)+1);
             } else if (downloadingProgressLinesStartIdx !== undefined && !matchers.downloadingProgressLineRegEx.test(lineText) && !matchers.whitespaceLineRegEx.test(lineText)) {
                 foldingRanges.push(new vscode.FoldingRange(downloadingProgressLinesStartIdx,lineIdx-1));
-                downloadingProgressLinesStartIdx = undefined;
+                downloadingProgressLinesStartIdx = matchers.downloadingLineRegEx.test(lineText) ? lineIdx : undefined
             }
 
         }
@@ -76,8 +77,8 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
         if (thirdLevelStartIdx !== undefined) {
             foldingRanges.push(new vscode.FoldingRange(thirdLevelStartIdx,document.lineCount-1));
         }
-        if (downloadingLinesStartIdx !== undefined) {
-            foldingRanges.push(new vscode.FoldingRange(downloadingLinesStartIdx,document.lineCount-1));
+        if (downloadingSectionStartIdx !== undefined) {
+            foldingRanges.push(new vscode.FoldingRange(downloadingSectionStartIdx,document.lineCount-1));
         }
         if (downloadingProgressLinesStartIdx !== undefined) {
             foldingRanges.push(new vscode.FoldingRange(downloadingProgressLinesStartIdx,document.lineCount-1));

@@ -7,9 +7,11 @@ Add folding ranges to Maven log files.
 Adds folding regions to maven log files.
 
 *A maven log file without folding compared to the same log file with all regions folded:*
+
 ![](./images/example1.png)
 
 *Folding and unfolding Maven log file examples:*
+
 ![](./images/example2.png)
 
 ## Features
@@ -31,6 +33,17 @@ Adds folding regions to maven log files.
 This extension uses expected patterns to add folding to a Maven log file.  The Maven output could change at any time, which may not match these expected patterns and cause this extension to not work as intended.
 
 I consider this extension experimental at this time, as it has not yet been tested against the many different version of Maven nor against many different Maven project setups.  With the wide variety of Maven versions available and numerous different ways to setup and run a Maven project, any of these may not work as expected with this extension.  If you come across a scenario that does not work correctly, please open an issue and/or a PR to improve this extension.
+
+### Download Progress Log Lines Behavior
+
+Download Progress lines (log lines that start with Downloading, Progress, or Downloaded) have 2 levels of folding:
+
+1. Fold entire section of Download Progress (purple in the example below)
+2. Fold each individual artifact's download progress. (blue and red in the example below)
+
+The first artifact download progress section (the red folding section in the example) may appear to be a bug since that folding section should start with the "Downloading" line above (like the blue folding sections).  However, this is not possible because it would interfere with the first level (purple) folding section.  Therefore, this section has to start on the second line of that section.
+
+![](./images/download-progress-log-lines-folding-behavior.png)
 
 ## Future Enhancements
 
