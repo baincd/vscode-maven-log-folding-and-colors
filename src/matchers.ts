@@ -4,6 +4,9 @@ export let downloadingLineRegEx: RegExp
 export let downloadingProgressLineRegEx: RegExp
 export let whitespaceLineRegEx: RegExp
 
+export let debugLineStartRegEx: RegExp
+export let debugLineRangeRegEx: RegExp
+
 export let topLevelStartRegEx: RegExp
 export let secondLevelStartRegEx: RegExp
 export let thirdLevelStartRegEx: RegExp
@@ -15,6 +18,9 @@ export let thirdLevelEndRegEx: RegExp
 const downloadingLinePattern = "(?:\\[INFO\\] )?Downloading from [\\w.-]*:"
 const downloadingProgressLinePattern = "(?:\\[INFO\\] )?(?:Progress \\(\\d+\\): |Downloaded from [\\w.-]*:)"
 const whitespaceLinePattern = "\\s*$"
+
+const debugLineStartPattern = "(?:\\[DEBUG\\] )"
+const debugLineRangePattern = "((?!\\[(?:INFO|WARNING|FATAL|ERROR)\\] )|\\[INFO\\] Error stacktraces are turned on.)"
 
 // Top Level Regions:
 // [INFO] Reactor Build Order:
@@ -40,6 +46,8 @@ function init() {
     downloadingLineRegEx = new RegExp(linePrefixPattern + downloadingLinePattern)
     downloadingProgressLineRegEx = new RegExp(linePrefixPattern + downloadingProgressLinePattern)
     whitespaceLineRegEx = new RegExp(linePrefixPattern + whitespaceLinePattern)
+    debugLineStartRegEx = new RegExp(linePrefixPattern + debugLineStartPattern)
+    debugLineRangeRegEx = new RegExp(linePrefixPattern + debugLineRangePattern)
     topLevelStartRegEx = new RegExp(linePrefixPattern + topLevelStartPattern)
     secondLevelStartRegEx = new RegExp(linePrefixPattern + secondLevelStartPattern)
     thirdLevelStartRegEx = new RegExp(linePrefixPattern + thirdLevelStartPattern)

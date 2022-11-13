@@ -10,6 +10,8 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
 
         let downloadingSectionStartIdx: (number | undefined) = undefined
         let downloadingProgressLinesStartIdx: (number | undefined) = undefined
+        let debugLinesStartIdx: (number | undefined) = undefined
+
         let topLevelStartIdx: (number | undefined) = undefined
         let secondLevelStartIdx: (number | undefined) = undefined
         let thirdLevelStartIdx: (number | undefined) = undefined
@@ -51,21 +53,28 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
                 thirdLevelStartIdx = undefined;
             }
 
-            if (downloadingSectionStartIdx === undefined && matchers.downloadingLineRegEx.test(lineText)) {
+
+            if (downloadingSectionStartIdx === undefined && isDownloadingSectionStart(lineText)) {
                 downloadingSectionStartIdx = lineIdx
-            } else if (downloadingSectionStartIdx !== undefined && !matchers.downloadingLineRegEx.test(lineText) && !matchers.downloadingProgressLineRegEx.test(lineText) && !matchers.whitespaceLineRegEx.test(lineText)) {
+            } else if (downloadingSectionStartIdx !== undefined && !isDownloadingSectionLine(lineText)) {
                 foldingRanges.push(new vscode.FoldingRange(downloadingSectionStartIdx,lineIdx-1));
                 downloadingSectionStartIdx = undefined;
             }
 
-            if (downloadingProgressLinesStartIdx === undefined && matchers.downloadingLineRegEx.test(lineText)) {
+            if (downloadingProgressLinesStartIdx === undefined && isDownloadingArtifactSectionStart(lineText)) {
                 // The first downloadingProgress section within an outer downloading section must start on the second line so it does not interfere with the outer downloading section
                 downloadingProgressLinesStartIdx = Math.max(lineIdx, (downloadingSectionStartIdx || -1)+1);
-            } else if (downloadingProgressLinesStartIdx !== undefined && !matchers.downloadingProgressLineRegEx.test(lineText) && !matchers.whitespaceLineRegEx.test(lineText)) {
+            } else if (downloadingProgressLinesStartIdx !== undefined && !isDownloadingArtifactSectionLine(lineText)) {
                 foldingRanges.push(new vscode.FoldingRange(downloadingProgressLinesStartIdx,lineIdx-1));
                 downloadingProgressLinesStartIdx = matchers.downloadingLineRegEx.test(lineText) ? lineIdx : undefined
             }
 
+            if (debugLinesStartIdx === undefined && isDebugSectionStart(lineText)) {
+                debugLinesStartIdx = lineIdx;
+            } else if (debugLinesStartIdx !== undefined && !isDebugSectionLine(lineText)) {
+                foldingRanges.push(new vscode.FoldingRange(debugLinesStartIdx,lineIdx-1));
+                debugLinesStartIdx = undefined
+            }
         }
 
         if (topLevelStartIdx !== undefined) {
@@ -83,10 +92,42 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
         if (downloadingProgressLinesStartIdx !== undefined) {
             foldingRanges.push(new vscode.FoldingRange(downloadingProgressLinesStartIdx,document.lineCount-1));
         }
+        if (debugLinesStartIdx !== undefined) {
+            foldingRanges.push(new vscode.FoldingRange(debugLinesStartIdx,document.lineCount-1));
+        }
 
         return foldingRanges;
     }
 
+}
+
+function isDownloadingSectionStart(lineText: string) {
+    return matchers.downloadingLineRegEx.test(lineText);
+}
+
+function isDownloadingSectionLine(lineText: string) {
+    return isDownloadingSectionStart(lineText)
+        || isDownloadingArtifactSectionLine(lineText);
+}
+
+function isDownloadingArtifactSectionStart(lineText: string) {
+    return matchers.downloadingLineRegEx.test(lineText);
+}
+
+function isDownloadingArtifactSectionLine(lineText: string) {
+    return matchers.downloadingProgressLineRegEx.test(lineText)
+        || matchers.whitespaceLineRegEx.test(lineText)
+        || isDebugSectionLine(lineText);
+}
+
+function isDebugSectionStart(lineText: string) {
+    return matchers.debugLineStartRegEx.test(lineText);
+}
+
+function isDebugSectionLine(lineText: string) {
+    return matchers.debugLineRangeRegEx.test(lineText) // Regex implicitly includes debugSectionStart lines, whitespace lines
+        && !matchers.downloadingLineRegEx.test(lineText) 
+        && !matchers.downloadingProgressLineRegEx.test(lineText);
 }
 
 export function activate(context: vscode.ExtensionContext, selectors: vscode.DocumentSelector[]) {
