@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - TBD
 ### Changed
 - Improved Downloading/Progress/Downloaded log lines behavior
+### Fixed
+- Fixed bug in detecting Reactor Summary section
 
 ## [0.0.3] - 2022-04-10
 ### Removed

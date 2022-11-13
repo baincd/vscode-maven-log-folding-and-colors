@@ -21,7 +21,7 @@ const whitespaceLinePattern = "\\s*$"
 // [INFO] ---------------------< com.example:example-parent >---------------------
 // [INFO] Reactor Summary for Example Parent 0.0.1-SNAPSHOT:
 // [INFO] BUILD SUCCESS
-const topLevelStartPattern = "\\[INFO\\] (?:Reactor Build Order:|-{2,}< [\\w.-]+:[\\w.-]+ >-{2,}|Reactor Summary for.*|BUILD (?:SUCCESS|FAILURE))$"
+const topLevelStartPattern = "\\[INFO\\] (?:Reactor Build Order:|-{2,}< [\\w.-]+:[\\w.-]+ >-{2,}|Reactor Summary(?: for.*|:)|BUILD (?:SUCCESS|FAILURE))$"
 
 // Second Level Regions:
 // [INFO] --- maven-clean-plugin:3.1.0:clean (default-clean) @ example-lib ---
