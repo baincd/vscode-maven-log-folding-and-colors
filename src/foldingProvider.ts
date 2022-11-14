@@ -12,6 +12,7 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
         let downloadingProgressLinesStartIdx: (number | undefined) = undefined
         let debugLinesStartIdx: (number | undefined) = undefined
         let consoleLinesStartIdx: (number | undefined) = undefined
+        let errorLinesStartIdx: (number | undefined) = undefined
 
         let topLevelStartIdx: (number | undefined) = undefined
         let secondLevelStartIdx: (number | undefined) = undefined
@@ -84,6 +85,14 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
                 consoleLinesStartIdx = undefined
             }
 
+            if (errorLinesStartIdx === undefined && isErrorLine(lineText)) {
+                errorLinesStartIdx = lineIdx;
+            } else if (errorLinesStartIdx !== undefined && !isErrorLine(lineText)) {
+                foldingRanges.push(new vscode.FoldingRange(errorLinesStartIdx,lineIdx-1));
+                errorLinesStartIdx = undefined
+            }
+
+
         }
 
         if (topLevelStartIdx !== undefined) {
@@ -106,6 +115,9 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
         }
         if (consoleLinesStartIdx !== undefined) {
             foldingRanges.push(new vscode.FoldingRange(consoleLinesStartIdx,document.lineCount-1));
+        }
+        if (errorLinesStartIdx !== undefined) {
+            foldingRanges.push(new vscode.FoldingRange(errorLinesStartIdx,document.lineCount-1));
         }
 
         return foldingRanges;
@@ -148,6 +160,11 @@ function isConsoleLine(lineText: string) {
         && !matchers.downloadingProgressLineRegEx.test(lineText)
 }
 
+function isErrorLine(lineText: string) {
+    return matchers.errorLineRegEx.test(lineText)
+        || isConsoleLine(lineText)
+}
+
 export function activate(context: vscode.ExtensionContext, selectors: vscode.DocumentSelector[]) {
     selectors.forEach(selector => 
         context.subscriptions.push(
@@ -155,3 +172,4 @@ export function activate(context: vscode.ExtensionContext, selectors: vscode.Doc
                 selector, new MavenLogFoldingRangeProvider()))
     );
 }
+
