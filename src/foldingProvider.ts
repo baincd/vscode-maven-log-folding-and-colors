@@ -11,6 +11,7 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
         let downloadingSectionStartIdx: (number | undefined) = undefined
         let downloadingProgressLinesStartIdx: (number | undefined) = undefined
         let debugLinesStartIdx: (number | undefined) = undefined
+        let consoleLinesStartIdx: (number | undefined) = undefined
 
         let topLevelStartIdx: (number | undefined) = undefined
         let secondLevelStartIdx: (number | undefined) = undefined
@@ -75,6 +76,14 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
                 foldingRanges.push(new vscode.FoldingRange(debugLinesStartIdx,lineIdx-1));
                 debugLinesStartIdx = undefined
             }
+
+            if (consoleLinesStartIdx === undefined && isConsoleLine(lineText)) {
+                consoleLinesStartIdx = lineIdx;
+            } else if (consoleLinesStartIdx !== undefined && !isConsoleLine(lineText)) {
+                foldingRanges.push(new vscode.FoldingRange(consoleLinesStartIdx,lineIdx-1));
+                consoleLinesStartIdx = undefined
+            }
+
         }
 
         if (topLevelStartIdx !== undefined) {
@@ -94,6 +103,9 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
         }
         if (debugLinesStartIdx !== undefined) {
             foldingRanges.push(new vscode.FoldingRange(debugLinesStartIdx,document.lineCount-1));
+        }
+        if (consoleLinesStartIdx !== undefined) {
+            foldingRanges.push(new vscode.FoldingRange(consoleLinesStartIdx,document.lineCount-1));
         }
 
         return foldingRanges;
@@ -128,6 +140,12 @@ function isDebugSectionLine(lineText: string) {
     return matchers.debugLineRangeRegEx.test(lineText) // Regex implicitly includes debugSectionStart lines, whitespace lines
         && !matchers.downloadingLineRegEx.test(lineText) 
         && !matchers.downloadingProgressLineRegEx.test(lineText);
+}
+
+function isConsoleLine(lineText: string) {
+    return matchers.consoleLineRegEx.test(lineText)
+        && !matchers.downloadingLineRegEx.test(lineText)
+        && !matchers.downloadingProgressLineRegEx.test(lineText)
 }
 
 export function activate(context: vscode.ExtensionContext, selectors: vscode.DocumentSelector[]) {

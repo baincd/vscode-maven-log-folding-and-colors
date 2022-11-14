@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - TBD
 ### Added
 - Logical folding for maven log in debug mode
+- Fold lines emitted directly to stdout and stderr (missing log level at start of line)
+- Fold indented debug lines
 ### Changed
 - Improved Downloading/Progress/Downloaded log lines behavior
 ### Fixed

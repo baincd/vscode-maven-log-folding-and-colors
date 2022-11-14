@@ -7,6 +7,8 @@ export let whitespaceLineRegEx: RegExp
 export let debugLineStartRegEx: RegExp
 export let debugLineRangeRegEx: RegExp
 
+export let consoleLineRegEx: RegExp
+
 export let topLevelStartRegEx: RegExp
 export let secondLevelStartRegEx: RegExp
 export let thirdLevelStartRegEx: RegExp
@@ -21,6 +23,9 @@ const whitespaceLinePattern = "\\s*$"
 
 const debugLineStartPattern = "(?:\\[DEBUG\\] )"
 const debugLineRangePattern = "((?!\\[(?:INFO|WARNING|FATAL|ERROR)\\] )|\\[INFO\\] Error stacktraces are turned on.)"
+
+const consoleLinePattern = "((?!\\[(?:INFO|WARNING|DEBUG|FATAL|ERROR)\\] )|\\[DEBUG\\]   )"
+
 
 // Top Level Regions:
 // [INFO] Reactor Build Order:
@@ -48,6 +53,7 @@ function init() {
     whitespaceLineRegEx = new RegExp(linePrefixPattern + whitespaceLinePattern)
     debugLineStartRegEx = new RegExp(linePrefixPattern + debugLineStartPattern)
     debugLineRangeRegEx = new RegExp(linePrefixPattern + debugLineRangePattern)
+    consoleLineRegEx = new RegExp(linePrefixPattern + consoleLinePattern)
     topLevelStartRegEx = new RegExp(linePrefixPattern + topLevelStartPattern)
     secondLevelStartRegEx = new RegExp(linePrefixPattern + secondLevelStartPattern)
     thirdLevelStartRegEx = new RegExp(linePrefixPattern + thirdLevelStartPattern)
