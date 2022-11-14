@@ -49,6 +49,4 @@ The first artifact download progress section (the red folding section in the exa
 
 Future enhancements under consideration include:
 
-- Folding consecutive lines of Maven debug-level output (from when Maven debugging is enabled)
-- Folding stack traces (typically seen in test output)
 - Colorizing log (similar to command line)
