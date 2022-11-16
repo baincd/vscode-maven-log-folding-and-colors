@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 export let downloadingLineRegEx: RegExp
 export let downloadingProgressLineRegEx: RegExp
+export let downloadingDebugLineRegEx: RegExp
 export let whitespaceLineRegEx: RegExp
 
 export let debugLineStartRegEx: RegExp
@@ -20,7 +21,8 @@ export let thirdLevelEndRegEx: RegExp
 // [\w.-] => Maven identifier (repo id, group id, or artifact id)
 
 const downloadingLinePattern = "(?:(?:\\[INFO\\] )?Downloading from [\\w.-]*:|\\[WARNING\\] Could not transfer metadata )"
-const downloadingProgressLinePattern = "(?:\\[INFO\\] )?(?:Progress \\(\\d+\\): |Downloaded from [\\w.-]*:)"
+const downloadingProgressLinePattern = "(?:(?:\\[INFO\\] )?(?:Progress \\(\\d+\\): |Downloaded from [\\w.-]*:))"
+const downloadingDebugLinePattern = "(?:\\[DEBUG\\] (?:Resolving artifact |Writing tracking file |Could not find metadata |Using transporter WagonTransporter |Using connector BasicRepositoryConnector ))"
 const whitespaceLinePattern = "\\s*$"
 
 const debugLineStartPattern = "(?:\\[DEBUG\\] )"
@@ -53,6 +55,7 @@ function init() {
 
     downloadingLineRegEx = new RegExp(linePrefixPattern + downloadingLinePattern)
     downloadingProgressLineRegEx = new RegExp(linePrefixPattern + downloadingProgressLinePattern)
+    downloadingDebugLineRegEx = new RegExp(linePrefixPattern + downloadingDebugLinePattern)
     whitespaceLineRegEx = new RegExp(linePrefixPattern + whitespaceLinePattern)
     debugLineStartRegEx = new RegExp(linePrefixPattern + debugLineStartPattern)
     debugLineRangeRegEx = new RegExp(linePrefixPattern + debugLineRangePattern)

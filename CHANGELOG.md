@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.2] - TBD
 ### Changed
 - Improved folding logic of downloading section when only a single artifact is downloaded
+- Only include specific debug lines in downloading region
 - Include "Could not transfer metadata" into downloading region
 
 ## [0.1.1] - 2022-11-14
