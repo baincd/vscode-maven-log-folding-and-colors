@@ -59,6 +59,10 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
             if (downloadingSectionStartIdx === undefined && isDownloadingSectionStart(lineText)) {
                 downloadingSectionStartIdx = lineIdx
             } else if (downloadingSectionStartIdx !== undefined && !isDownloadingSectionLine(lineText)) {
+                // If there is only a single downloadingProgress section, clear that
+                if (downloadingProgressLinesStartIdx === downloadingSectionStartIdx + 1) {
+                    downloadingProgressLinesStartIdx = undefined
+                }
                 foldingRanges.push(new vscode.FoldingRange(downloadingSectionStartIdx,lineIdx-1));
                 downloadingSectionStartIdx = undefined;
             }
