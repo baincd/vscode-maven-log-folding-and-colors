@@ -19,7 +19,7 @@ export let thirdLevelEndRegEx: RegExp
 
 // [\w.-] => Maven identifier (repo id, group id, or artifact id)
 
-const downloadingLinePattern = "(?:\\[INFO\\] )?Downloading from [\\w.-]*:"
+const downloadingLinePattern = "(?:(?:\\[INFO\\] )?Downloading from [\\w.-]*:|\\[WARNING\\] Could not transfer metadata )"
 const downloadingProgressLinePattern = "(?:\\[INFO\\] )?(?:Progress \\(\\d+\\): |Downloaded from [\\w.-]*:)"
 const whitespaceLinePattern = "\\s*$"
 
