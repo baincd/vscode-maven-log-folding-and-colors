@@ -26,7 +26,7 @@ const downloadingDebugLinePattern = "(?:\\[DEBUG\\] (?:Resolving artifact |Writi
 const whitespaceLinePattern = "\\s*$"
 
 const debugLineStartPattern = "(?:\\[DEBUG\\] )"
-const debugLineRangePattern = "((?!\\[(?:INFO|WARNING|FATAL|ERROR)\\] )|\\[INFO\\] Error stacktraces are turned on.)"
+const debugLineRangePattern = "(?!\\[(?:INFO|WARNING|FATAL|ERROR)\\] )"
 
 const consoleLinePattern = "((?!\\[(?:INFO|WARNING|DEBUG|FATAL|ERROR)\\] )|\\[DEBUG\\]   )"
 
