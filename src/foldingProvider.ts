@@ -8,8 +8,8 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
     provideFoldingRanges(document: vscode.TextDocument, context: vscode.FoldingContext, token: vscode.CancellationToken): vscode.ProviderResult<vscode.FoldingRange[]> {
         let foldingRanges: vscode.ProviderResult<vscode.FoldingRange[]> = [];
 
-        let downloadingSectionStartIdx: (number | undefined) = undefined
-        let downloadingProgressLinesStartIdx: (number | undefined) = undefined
+        let downloadingTopLevelStartIdx: (number | undefined) = undefined
+        let downloadingSecondLevelStartIdx: (number | undefined) = undefined
         let debugLinesStartIdx: (number | undefined) = undefined
         let consoleLinesStartIdx: (number | undefined) = undefined
         let errorLinesStartIdx: (number | undefined) = undefined
@@ -56,31 +56,31 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
             }
 
 
-            if (downloadingSectionStartIdx === undefined && isDownloadingSectionStart(lineText)) {
-                downloadingSectionStartIdx = lineIdx
-            } else if (downloadingSectionStartIdx !== undefined && !isDownloadingSectionLine(lineText)) {
+            if (downloadingTopLevelStartIdx === undefined && isDownloadingTopLevelStart(lineText)) {
+                downloadingTopLevelStartIdx = lineIdx
+            } else if (downloadingTopLevelStartIdx !== undefined && !isDownloadingTopLevelLine(lineText)) {
                 if (debugLinesStartIdx !== undefined) {
                     foldingRanges.push(new vscode.FoldingRange(debugLinesStartIdx,lineIdx-1));
                     debugLinesStartIdx = undefined
                 }
                 // If there is only a single downloadingProgress section, clear that
-                if (downloadingProgressLinesStartIdx === downloadingSectionStartIdx + 1) {
-                    downloadingProgressLinesStartIdx = undefined
+                if (downloadingSecondLevelStartIdx === downloadingTopLevelStartIdx + 1) {
+                    downloadingSecondLevelStartIdx = undefined
                 }
-                foldingRanges.push(new vscode.FoldingRange(downloadingSectionStartIdx,lineIdx-1));
-                downloadingSectionStartIdx = undefined;
+                foldingRanges.push(new vscode.FoldingRange(downloadingTopLevelStartIdx,lineIdx-1));
+                downloadingTopLevelStartIdx = undefined;
             }
 
-            if (downloadingProgressLinesStartIdx === undefined && isDownloadingArtifactSectionStart(lineText)) {
+            if (downloadingSecondLevelStartIdx === undefined && isDownloadingSecondLevelStart(lineText)) {
                 // The first downloadingProgress section within an outer downloading section must start on the second line so it does not interfere with the outer downloading section
-                downloadingProgressLinesStartIdx = Math.max(lineIdx, (downloadingSectionStartIdx || -1)+1);
-            } else if (downloadingProgressLinesStartIdx !== undefined && !isDownloadingArtifactSectionLine(lineText)) {
+                downloadingSecondLevelStartIdx = Math.max(lineIdx, (downloadingTopLevelStartIdx || -1)+1);
+            } else if (downloadingSecondLevelStartIdx !== undefined && !isDownloadingSecondLevelLine(lineText)) {
                 if (debugLinesStartIdx !== undefined) {
                     foldingRanges.push(new vscode.FoldingRange(debugLinesStartIdx,lineIdx-1));
                     debugLinesStartIdx = undefined
                 }
-                foldingRanges.push(new vscode.FoldingRange(downloadingProgressLinesStartIdx,lineIdx-1));
-                downloadingProgressLinesStartIdx = matchers.downloadingLineRegEx.test(lineText) ? lineIdx : undefined
+                foldingRanges.push(new vscode.FoldingRange(downloadingSecondLevelStartIdx,lineIdx-1));
+                downloadingSecondLevelStartIdx = matchers.downloadingLineRegEx.test(lineText) ? lineIdx : undefined
             }
 
             if (debugLinesStartIdx === undefined && isDebugSectionStart(lineText)) {
@@ -116,11 +116,11 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
         if (thirdLevelStartIdx !== undefined) {
             foldingRanges.push(new vscode.FoldingRange(thirdLevelStartIdx,document.lineCount-1));
         }
-        if (downloadingSectionStartIdx !== undefined) {
-            foldingRanges.push(new vscode.FoldingRange(downloadingSectionStartIdx,document.lineCount-1));
+        if (downloadingTopLevelStartIdx !== undefined) {
+            foldingRanges.push(new vscode.FoldingRange(downloadingTopLevelStartIdx,document.lineCount-1));
         }
-        if (downloadingProgressLinesStartIdx !== undefined) {
-            foldingRanges.push(new vscode.FoldingRange(downloadingProgressLinesStartIdx,document.lineCount-1));
+        if (downloadingSecondLevelStartIdx !== undefined) {
+            foldingRanges.push(new vscode.FoldingRange(downloadingSecondLevelStartIdx,document.lineCount-1));
         }
         if (debugLinesStartIdx !== undefined) {
             foldingRanges.push(new vscode.FoldingRange(debugLinesStartIdx,document.lineCount-1));
@@ -137,20 +137,20 @@ class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
 
 }
 
-function isDownloadingSectionStart(lineText: string) {
+function isDownloadingTopLevelStart(lineText: string) {
     return matchers.downloadingLineRegEx.test(lineText);
 }
 
-function isDownloadingSectionLine(lineText: string) {
-    return isDownloadingSectionStart(lineText)
-        || isDownloadingArtifactSectionLine(lineText);
+function isDownloadingTopLevelLine(lineText: string) {
+    return isDownloadingTopLevelStart(lineText)
+        || isDownloadingSecondLevelLine(lineText);
 }
 
-function isDownloadingArtifactSectionStart(lineText: string) {
+function isDownloadingSecondLevelStart(lineText: string) {
     return matchers.downloadingLineRegEx.test(lineText);
 }
 
-function isDownloadingArtifactSectionLine(lineText: string) {
+function isDownloadingSecondLevelLine(lineText: string) {
     return matchers.downloadingProgressLineRegEx.test(lineText)
         || matchers.downloadingDebugLineRegEx.test(lineText)
         || matchers.whitespaceLineRegEx.test(lineText);
