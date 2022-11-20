@@ -19,7 +19,11 @@ Adds folding regions to maven log files.
 - Top level of folding is each Maven project, as well as the Maven reactor build order, summary, and status
 - Second level of folding is each plugin that runs
 - Third level of folding is each test class run
-- Additional folding regions cover consecutive "downloading..."/"downloaded..." lines
+- Fold groups of "downloading..."/"downloaded..." (and related) lines
+- Fold groups of lines that start with "[DEBUG]"
+- Fold groups of lines that start with "[ERROR]"
+- Fold groups of lines that do not start with any log level ("[INFO]", "[DEBUG]", etc)
+ 
 
 ## Settings
 
@@ -36,7 +40,7 @@ I consider this extension experimental at this time, as it has not yet been test
 
 ### Downloading Artifacts Log Lines Behavior
 
-Since Maven can download artifacts in parallel, it is impossible to fold these lines perfectly such that all the lines regarding the downloading of a specific artifact are always in the same folding region.  Despite this, the folding region of these log lines is made as useful as possible.
+Since Maven can download artifacts in parallel, it is impossible to fold these lines perfectly such that all the lines regarding the downloading of a specific artifact are always in the same folding region.
 
 ## Future Enhancements
 
