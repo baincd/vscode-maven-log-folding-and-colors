@@ -2,139 +2,74 @@ import * as vscode from 'vscode';
 
 import * as matchers from './matchers'
 
-class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
+export class MavenLogFoldingRangeProvider implements vscode.FoldingRangeProvider {
     onDidChangeFoldingRanges?: vscode.Event<void> | undefined;
     
     provideFoldingRanges(document: vscode.TextDocument, context: vscode.FoldingContext, token: vscode.CancellationToken): vscode.ProviderResult<vscode.FoldingRange[]> {
-        let foldingRanges: vscode.ProviderResult<vscode.FoldingRange[]> = [];
+        const ctx = new FoldingRegionContext();
 
-        let downloadingTopLevelStartIdx: (number | undefined) = undefined
-        let downloadingSecondLevelStartIdx: (number | undefined) = undefined
-        let debugLinesStartIdx: (number | undefined) = undefined
-        let consoleLinesStartIdx: (number | undefined) = undefined
-        let errorLinesStartIdx: (number | undefined) = undefined
-
-        let topLevelStartIdx: (number | undefined) = undefined
-        let secondLevelStartIdx: (number | undefined) = undefined
-        let thirdLevelStartIdx: (number | undefined) = undefined
+        let isCurDebugOrErrorRegionLine = (lineText: string): boolean => false;
 
         for (let lineIdx = 0; lineIdx < document.lineCount && !token.isCancellationRequested; lineIdx++) {
             const lineText = document.lineAt(lineIdx).text;
 
             if (matchers.topLevelStartRegEx.test(lineText)) {
-                if (topLevelStartIdx !== undefined) {
-                    foldingRanges.push(new vscode.FoldingRange(topLevelStartIdx,lineIdx-1));
-                }
-                if (secondLevelStartIdx !== undefined) {
-                    foldingRanges.push(new vscode.FoldingRange(secondLevelStartIdx,lineIdx-1));
-                }
-                if (thirdLevelStartIdx !== undefined) {
-                    foldingRanges.push(new vscode.FoldingRange(thirdLevelStartIdx,lineIdx-1));
-                }
-                topLevelStartIdx = lineIdx;
-                secondLevelStartIdx = undefined;
-                thirdLevelStartIdx = undefined;
+                ctx.topLevelRegion.startRegion(lineIdx);
             } else if (matchers.secondLevelStartRegEx.test(lineText)) {
-                if (secondLevelStartIdx !== undefined) {
-                    foldingRanges.push(new vscode.FoldingRange(secondLevelStartIdx,lineIdx-1));
-                }
-                if (thirdLevelStartIdx !== undefined) {
-                    foldingRanges.push(new vscode.FoldingRange(thirdLevelStartIdx,lineIdx-1));
-                }
-                secondLevelStartIdx = lineIdx;
-                thirdLevelStartIdx = undefined;
+                ctx.secondLevelRegion.startRegion(lineIdx);
             } else if (matchers.thirdLevelStartRegEx.test(lineText)) {
-                if (thirdLevelStartIdx !== undefined) {
-                    foldingRanges.push(new vscode.FoldingRange(thirdLevelStartIdx,lineIdx-1));
-                }
-                thirdLevelStartIdx = lineIdx;
+                ctx.thirdLevelRegion.startRegion(lineIdx);
             } else if (matchers.thirdLevelEndRegEx.test(lineText)) {
-                if (thirdLevelStartIdx !== undefined) {
-                    foldingRanges.push(new vscode.FoldingRange(thirdLevelStartIdx,lineIdx-1));
+                ctx.thirdLevelRegion.endRegion(lineIdx-1);
+            }
+
+            if (!ctx.downloadingTopLevelRegion.inRegion()) {
+                if (isDownloadingTopLevelStart(lineText)) {
+                    ctx.downloadingTopLevelRegion.startRegion(lineIdx);
+                    ctx.downloadingSecondLevelRegion.startFirstRegion(lineIdx+1);
                 }
-                thirdLevelStartIdx = undefined;
-            }
-
-
-            if (downloadingTopLevelStartIdx === undefined && isDownloadingTopLevelStart(lineText)) {
-                downloadingTopLevelStartIdx = lineIdx
-            } else if (downloadingTopLevelStartIdx !== undefined && !isDownloadingTopLevelLine(lineText)) {
-                if (debugLinesStartIdx !== undefined) {
-                    foldingRanges.push(new vscode.FoldingRange(debugLinesStartIdx,lineIdx-1));
-                    debugLinesStartIdx = undefined
+            } else {
+                if (!isDownloadingTopLevelLine(lineText)) {
+                    if (ctx.downloadingSecondLevelRegion.isInitialRegion()) {
+                        ctx.downloadingSecondLevelRegion.cancelRegion();
+                    }
+                    ctx.downloadingTopLevelRegion.endRegion(lineIdx-1);
+                } else {
+                    if (isDownloadingSecondLevelStart(lineText)) {
+                        ctx.downloadingSecondLevelRegion.startRegion(lineIdx);
+                    } else if (!isDownloadingSecondLevelLine(lineText)) {
+                        ctx.downloadingSecondLevelRegion.endRegion(lineIdx-1);
+                    }
                 }
-                // If there is only a single downloadingProgress section, clear that
-                if (downloadingSecondLevelStartIdx === downloadingTopLevelStartIdx + 1) {
-                    downloadingSecondLevelStartIdx = undefined
+            }
+
+            if (ctx.debugOrErrorLinesRegion.inRegion() && !isCurDebugOrErrorRegionLine(lineText)) {
+                ctx.debugOrErrorLinesRegion.endRegion(lineIdx-1);
+            }
+
+            if (!ctx.debugOrErrorLinesRegion.inRegion()) {
+                if (isDebugSectionStart(lineText)) {
+                    ctx.debugOrErrorLinesRegion.startRegion(lineIdx);
+                    isCurDebugOrErrorRegionLine = isDebugSectionLine;
+                } else if (isErrorSectionStart(lineText)) {
+                    ctx.debugOrErrorLinesRegion.startRegion(lineIdx);
+                    isCurDebugOrErrorRegionLine = isErrorLine;
                 }
-                foldingRanges.push(new vscode.FoldingRange(downloadingTopLevelStartIdx,lineIdx-1));
-                downloadingTopLevelStartIdx = undefined;
             }
 
-            if (downloadingSecondLevelStartIdx === undefined && isDownloadingSecondLevelStart(lineText)) {
-                // The first downloadingProgress section within an outer downloading section must start on the second line so it does not interfere with the outer downloading section
-                downloadingSecondLevelStartIdx = Math.max(lineIdx, (downloadingTopLevelStartIdx || -1)+1);
-            } else if (downloadingSecondLevelStartIdx !== undefined && !isDownloadingSecondLevelLine(lineText)) {
-                if (debugLinesStartIdx !== undefined) {
-                    foldingRanges.push(new vscode.FoldingRange(debugLinesStartIdx,lineIdx-1));
-                    debugLinesStartIdx = undefined
-                }
-                foldingRanges.push(new vscode.FoldingRange(downloadingSecondLevelStartIdx,lineIdx-1));
-                downloadingSecondLevelStartIdx = matchers.downloadingLineRegEx.test(lineText) ? lineIdx : undefined
+            if (!ctx.consoleLinesRegion.inRegion() && isConsoleLine(lineText)) {
+                ctx.consoleLinesRegion.startRegion(lineIdx);
+            } else if (ctx.consoleLinesRegion.inRegion() && !isConsoleLine(lineText)) {
+                ctx.consoleLinesRegion.endRegion(lineIdx-1);
             }
 
-            if (debugLinesStartIdx === undefined && isDebugSectionStart(lineText)) {
-                debugLinesStartIdx = lineIdx;
-            } else if (debugLinesStartIdx !== undefined && !isDebugSectionLine(lineText)) {
-                foldingRanges.push(new vscode.FoldingRange(debugLinesStartIdx,lineIdx-1));
-                debugLinesStartIdx = undefined
-            }
-
-            if (consoleLinesStartIdx === undefined && isConsoleLine(lineText)) {
-                consoleLinesStartIdx = lineIdx;
-            } else if (consoleLinesStartIdx !== undefined && !isConsoleLine(lineText)) {
-                foldingRanges.push(new vscode.FoldingRange(consoleLinesStartIdx,lineIdx-1));
-                consoleLinesStartIdx = undefined
-            }
-
-            if (errorLinesStartIdx === undefined && isErrorLine(lineText)) {
-                errorLinesStartIdx = lineIdx;
-            } else if (errorLinesStartIdx !== undefined && !isErrorLine(lineText)) {
-                foldingRanges.push(new vscode.FoldingRange(errorLinesStartIdx,lineIdx-1));
-                errorLinesStartIdx = undefined
-            }
-
-
         }
 
-        if (topLevelStartIdx !== undefined) {
-            foldingRanges.push(new vscode.FoldingRange(topLevelStartIdx,document.lineCount-1));
-        }
-        if (secondLevelStartIdx !== undefined) {
-            foldingRanges.push(new vscode.FoldingRange(secondLevelStartIdx,document.lineCount-1));
-        }
-        if (thirdLevelStartIdx !== undefined) {
-            foldingRanges.push(new vscode.FoldingRange(thirdLevelStartIdx,document.lineCount-1));
-        }
-        if (downloadingTopLevelStartIdx !== undefined) {
-            foldingRanges.push(new vscode.FoldingRange(downloadingTopLevelStartIdx,document.lineCount-1));
-        }
-        if (downloadingSecondLevelStartIdx !== undefined) {
-            foldingRanges.push(new vscode.FoldingRange(downloadingSecondLevelStartIdx,document.lineCount-1));
-        }
-        if (debugLinesStartIdx !== undefined) {
-            foldingRanges.push(new vscode.FoldingRange(debugLinesStartIdx,document.lineCount-1));
-        }
-        if (consoleLinesStartIdx !== undefined) {
-            foldingRanges.push(new vscode.FoldingRange(consoleLinesStartIdx,document.lineCount-1));
-        }
-        if (errorLinesStartIdx !== undefined) {
-            foldingRanges.push(new vscode.FoldingRange(errorLinesStartIdx,document.lineCount-1));
-        }
+        // Close all non-closed regions (top level will cascade to all regions)
+        ctx.topLevelRegion.endRegion(document.lineCount-1);
 
-        return foldingRanges;
+        return ctx.foldingRanges;
     }
-
 }
 
 function isDownloadingTopLevelStart(lineText: string) {
@@ -172,6 +107,10 @@ function isConsoleLine(lineText: string) {
         && !matchers.downloadingProgressLineRegEx.test(lineText)
 }
 
+function isErrorSectionStart(lineText: string) {
+    return matchers.errorLineRegEx.test(lineText)
+}
+
 function isErrorLine(lineText: string) {
     return matchers.errorLineRegEx.test(lineText)
         || isConsoleLine(lineText)
@@ -185,3 +124,89 @@ export function activate(context: vscode.ExtensionContext, selectors: vscode.Doc
     );
 }
 
+
+
+class FoldingRegionContext {
+
+    readonly foldingRanges: vscode.FoldingRange[] = [];
+    private foldingRangeAccumulator = (foldingRange: vscode.FoldingRange) => this.foldingRanges.push(foldingRange);
+
+    // Folding Region Hierarchy ( '=>' means "contained by")
+
+    // ThirdLevel => SecondLevel => TopLevel
+    // DownloadingSecondLevel => DownloadingTopLevel => (ThirdLevel|SecondLevel|TopLevel)
+    // DebugLOrErrorLines => (DownloadingSecondLevel|DownloadingTopLevel|ThirdLevel|SecondLevel|TopLevel)
+    // ConsoleLines => (ErrorLines|DebugLines|DownloadingSecondLevel|DownloadingTopLevel|ThirdLevel|SecondLevel|TopLevel)
+
+    readonly consoleLinesRegion = new MavenFoldingRegion(undefined, this.foldingRangeAccumulator);
+    readonly debugOrErrorLinesRegion = new MavenFoldingRegion(this.consoleLinesRegion, this.foldingRangeAccumulator);
+    readonly downloadingSecondLevelRegion = new TrackingMavenFoldingRegion(this.debugOrErrorLinesRegion, this.foldingRangeAccumulator);
+    readonly downloadingTopLevelRegion = new MavenFoldingRegion(this.downloadingSecondLevelRegion, this.foldingRangeAccumulator);
+    readonly thirdLevelRegion = new MavenFoldingRegion(this.downloadingTopLevelRegion, this.foldingRangeAccumulator);
+    readonly secondLevelRegion = new MavenFoldingRegion(this.thirdLevelRegion, this.foldingRangeAccumulator);
+    readonly topLevelRegion = new MavenFoldingRegion(this.secondLevelRegion, this.foldingRangeAccumulator);
+
+}
+
+
+
+
+class MavenFoldingRegion {
+    private foldingRangeAccumulator: (foldingRegion: vscode.FoldingRange) => void;
+    
+    private startIdx?: number = undefined
+    private innerRegionEnd: (endLineIdx: number) => void;
+
+    constructor(innerRegion: MavenFoldingRegion | undefined, foldingRegionAccumulator: (foldingRegion: vscode.FoldingRange) => void) {
+        if (innerRegion instanceof MavenFoldingRegion) {
+            this.innerRegionEnd = (endLineIdx: number) => innerRegion.endRegion(endLineIdx);
+        } else {
+            this.innerRegionEnd = (endLineIdx: number) => {};
+        }
+        this.foldingRangeAccumulator = foldingRegionAccumulator;
+    }
+
+    public startRegion(startLineIdx: number) {
+        this.endRegion(startLineIdx-1);
+        this.startIdx = startLineIdx;
+    }
+
+    public endRegion(endLineIdx: number) {
+        this.innerRegionEnd(endLineIdx);
+        if (this.startIdx !== undefined && this.startIdx != endLineIdx) {
+            this.foldingRangeAccumulator(new vscode.FoldingRange(this.startIdx,endLineIdx));
+        }
+        this.startIdx = undefined;
+    }
+
+    public inRegion(): boolean {
+        return this.startIdx !== undefined;
+    }
+
+    public cancelRegion() {
+        this.startIdx = undefined;
+    }
+}
+
+class TrackingMavenFoldingRegion extends MavenFoldingRegion {
+    private initialRegion = false;
+
+    constructor(innerRegion: MavenFoldingRegion | undefined, foldingRegionAccumulator: (foldingRegion: vscode.FoldingRange) => void) {
+        super(innerRegion,foldingRegionAccumulator);
+    }
+
+    public startFirstRegion(startLineIdx: number) {
+        this.startRegion(startLineIdx);
+        this.initialRegion = true;
+    }
+
+    public startRegion(startLineIdx: number) {
+        super.startRegion(startLineIdx);
+        this.initialRegion = false;
+    }
+
+    public isInitialRegion(): boolean {
+        return this.initialRegion;
+    }
+
+}
