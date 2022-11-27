@@ -97,8 +97,6 @@ function isDebugSectionStart(lineText: string) {
 
 function isDebugSectionLine(lineText: string) {
     return matchers.debugLineRangeRegEx.test(lineText) // Regex implicitly includes debugSectionStart lines, whitespace lines
-        && !matchers.downloadingLineRegEx.test(lineText)
-        && !matchers.downloadingProgressLineRegEx.test(lineText);
 }
 
 function isConsoleLine(lineText: string) {
